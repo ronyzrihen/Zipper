@@ -4,7 +4,6 @@ pipeline {
             filename 'Dockerfile'
             dir '.'
             args "--privileged" 
-            label 'zip-job-docker'
         }
     }
     stages {
