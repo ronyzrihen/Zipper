@@ -20,7 +20,6 @@ pipeline {
         dockerfile {
             filename 'Dockerfile'       
             dir '.'                     
-            additionalBuildArgs '--privileged'
             label 'zip-job-docker'      
         }
     }
