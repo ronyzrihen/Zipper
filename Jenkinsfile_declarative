@@ -16,12 +16,26 @@
 //     }
 // }
 pipeline {
-    agent any
+    agent {
+        dockerfile {
+            filename 'Dockerfile'       
+            dir '.'                     
+            additionalBuildArgs '--privileged'
+            label 'zip-job-docker'      
+        }
+    }
+
     stages {
-        stage('Test') {
+        stage('Build & Run Python Job') {
             steps {
-                sh 'docker version'
+                echo 'Building image and running zip_job.py...'
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
