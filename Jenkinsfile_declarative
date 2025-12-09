@@ -1,20 +1,4 @@
-// pipeline {
-//     agent {
-//          dockerfile {
-//             filename 'Dockerfile'       
-//             dir '.'                     
-//             additionalBuildArgs '--privileged'
-//             label 'zip-job-docker'   
-//         }
-//     }
-//     stages {
-//         stage('Test') {
-//             steps {
-//                 echo 'Running inside a Docker container built from the Dockerfile'
-//             }
-//         }
-//     }
-// }
+
 pipeline {
     agent {
         dockerfile {
