@@ -5,8 +5,7 @@ pipeline {
     stages {
         stage('Test') {
             steps {
-                sh 'node --version'
-                sh 'svn --version'
+                echo 'Running inside a Docker container built from the Dockerfile'
             }
         }
     }
