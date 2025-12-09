@@ -28,7 +28,7 @@ pipeline {
         stage('Build & Run Python Job') {
             steps {
                 echo 'Building image and running zip_job.py...'
-                sh 'python3 /job/zip_job.py'
+                sh 'python3 ./job/zip_job.py'
                 sh 'pwd'
             }
         }
