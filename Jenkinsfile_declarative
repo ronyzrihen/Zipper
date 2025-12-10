@@ -1,4 +1,3 @@
-
 pipeline {
     agent {
         dockerfile {
@@ -8,14 +7,43 @@ pipeline {
         }
     }
 
+    environment {
+        VERSION = "1.2.0"
+    }
+
     stages {
-        stage('Build & Run Python Job') {
+        stage('Run Job') {
             steps {
-                echo 'Building image and running zip_job.py...'
+                echo "Running zip_job.py to generate zip files..."
                 sh 'python3 ./job/zip_job.py'
-                sh 'pwd'
+            }
+        }
+
+        stage('Publish to Artifactory') {
+            steps {
+                script {
+                    def server = Artifactory.server('zip-artifacts')
+                    def buildInfo = Artifactory.newBuildInfo()
+                    buildInfo.env.capture = true
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "zipped/*.zip",
+                                "target": "binary-storage/${VERSION}/"
+                            }
+                        ]
+                    }"""
+                    server.upload(uploadSpec, buildInfo)
+                    server.publishBuildInfo(buildInfo)
+                }
             }
         }
     }
 
+    post {
+        always {
+            echo "Cleaning workspace..."
+            deleteDir()
+        }
+    }
 }
