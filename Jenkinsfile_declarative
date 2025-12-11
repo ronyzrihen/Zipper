@@ -39,7 +39,7 @@ pipeline {
             }
         }
         stage('Report'){
-            {
+            steps{
             echo "Sending email report..."
             emailext body: 'A Test EMail', 
             recipientProviders: [[$class: 'DevelopersRecipientProvider'], 
