@@ -8,7 +8,8 @@ pipeline {
     }
 
     environment {
-        VERSION = "1.2.0"
+        ARTIFACTORY_CREDS = credentials('artifactory-creds')
+        RECIPIENT_EMAIL = "ronyzn3@gmail.com"
     }
 
     stages {
