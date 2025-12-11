@@ -1,6 +1,5 @@
 pipeline {
     agent {
-        def utils = load 'jenkins_utils.groovy'
         dockerfile {
             filename 'Dockerfile'       
             dir '.'                     
