@@ -1,7 +1,6 @@
-def utils = load 'jenkins_utils.groovy'
-
 pipeline {
     agent {
+        def utils = load 'jenkins_utils.groovy'
         dockerfile {
             filename 'Dockerfile'       
             dir '.'                     
@@ -18,6 +17,7 @@ pipeline {
         stage('Run Job') {
             steps {
                 script {
+                    utils = load 'jenkins_utils.groovy'
                     utils.runZipJob()
                 }
             }
