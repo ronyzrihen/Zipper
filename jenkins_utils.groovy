@@ -1,29 +1,39 @@
 def runZipJob() {
     echo "Running zip_job.py to generate zip files..."
-    sh 'python3 ./job/zip_job.py'
-    // TODO: add error handling in case script fails
+    try{
+        sh 'python3 ./job/zip_job.py'
+
+    }catch (Exception e){
+        error "Error running zip_job.py: ${e.getMessage()}"
+    }
+    def zipFiles = sh(script: "ls zipped/*.zip 2>/dev/null || true", returnStdout: true).trim()
+    if (zipFiles == "") {
+        error "No zip files found in 'zipped/' directory to upload."
+    }
 }
 
 def uploadToArtifactory(String serverId) {
     echo "Uploading artifacts to Artifactory..."
-    def server = Artifactory.server(serverId)
-    server.credentialsId = env.ARTIFACTORY_CREDS
-    
-    def buildInfo = Artifactory.newBuildInfo()
-    buildInfo.env.capture = true
+    try{
+        def server = Artifactory.server(serverId)
+        server.credentialsId = env.ARTIFACTORY_CREDS
+        
+        def buildInfo = Artifactory.newBuildInfo()
+        buildInfo.env.capture = true
+        def uploadSpec = """{ 
+            "files": [
+                {
+                    "pattern": "zipped/*.zip",
+                    "target": "${env.ARTIFACTORY_REPO}${env.VERSION}/"
+                }
+            ]
+        }"""
 
-    // TODO: add error handling in case upload fails
-    def uploadSpec = """{ 
-        "files": [
-            {
-                "pattern": "zipped/*.zip",
-                "target": "${env.ARTIFACTORY_REPO}${env.VERSION}/"
-            }
-        ]
-    }"""
-
-    server.upload(uploadSpec, buildInfo)
-    server.publishBuildInfo(buildInfo)
+        server.upload(uploadSpec, buildInfo)
+        server.publishBuildInfo(buildInfo)
+    } catch (Exception e) {
+        error "Error uploading artifacts to Artifactory: ${e.getMessage()}"
+    }
     echo "Artifacts uploaded successfully to ${env.ARTIFACTORY_REPO}${env.VERSION}/"
 }
 

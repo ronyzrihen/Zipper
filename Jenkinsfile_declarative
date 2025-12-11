@@ -1,3 +1,5 @@
+def utils = load 'jenkins_utils.groovy'
+
 pipeline {
     agent {
         dockerfile {
@@ -15,45 +17,33 @@ pipeline {
     stages {
         stage('Run Job') {
             steps {
-                echo "Running zip_job.py to generate zip files..."
-                sh 'python3 ./job/zip_job.py'
+                script {
+                    utils.runZipJob()
+                }
             }
         }
 
         stage('Publish to Artifactory') {
             steps {
                 script {
-                    def server = Artifactory.server('zip-artifacts')
-                    def buildInfo = Artifactory.newBuildInfo()
-                    buildInfo.env.capture = true
-                    def uploadSpec = """{
-                        "files": [
-                            {
-                                "pattern": "zipped/*.zip",
-                                "target": "binary-storage/${VERSION}/"
-                            }
-                        ]
-                    }"""
-                    server.upload(uploadSpec, buildInfo)
-                    server.publishBuildInfo(buildInfo)
+                    utils.uploadToArtifactory('artifactory-server')
                 }
             }
         }
         stage('Report'){
             steps{
-            echo "Sending email report..."
-            emailext body: 'A Test EMail', 
-            recipientProviders: [[$class: 'DevelopersRecipientProvider'], 
-            [$class: 'RequesterRecipientProvider']], 
-            subject: 'Test'
-        }
+                script {
+                    utils.sendEmailReport(env.RECIPIENT_EMAIL)
+                }
+            }
         }
     }
 
     post {
         always {
-            echo "Cleaning workspace..."
-            deleteDir()
+            script {
+                utils.cleanWorkspace()
+            }
         }
     }
 }
