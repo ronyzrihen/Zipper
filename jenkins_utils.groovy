@@ -12,12 +12,9 @@ def runZipJob() {
     }
 }
 
-def uploadToArtifactory(String serverId) {
+def uploadToArtifactory(server) {
     echo "Uploading artifacts to Artifactory..."
     try{
-        def server = Artifactory.server(serverId)
-        server.credentialsId = env.ARTIFACTORY_CREDS
-        
         def buildInfo = Artifactory.newBuildInfo()
         buildInfo.env.capture = true
         def uploadSpec = """{ 

@@ -8,7 +8,6 @@ pipeline {
     }
 
     environment {
-        ARTIFACTORY_CREDS = credentials('artifactory-creds')
         RECIPIENT_EMAIL = "ronyzn3@gmail.com"
     }
 
@@ -25,7 +24,8 @@ pipeline {
         stage('Publish to Artifactory') {
             steps {
                 script {
-                    utils.uploadToArtifactory('zip-artifacts')
+                    def server = Artifactory.server('zip-artifacts')
+                    utils.uploadToArtifactory(server)
                 }
             }
         }
