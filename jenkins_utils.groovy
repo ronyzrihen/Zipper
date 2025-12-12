@@ -16,7 +16,7 @@ def uploadToArtifactory(String serverId) {
     echo "Uploading artifacts to Artifactory..."
     try{
         def server = Artifactory.server(serverId)
-        server.credentialsId = env.ARTIFACTORY_CREDS
+        // server.credentialsId = env.ARTIFACTORY_CREDS
         
         def buildInfo = Artifactory.newBuildInfo()
         buildInfo.env.capture = true
