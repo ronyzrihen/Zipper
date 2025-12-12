@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        // ARTIFACTORY_CREDS = credentials('artifactory-creds')
+        ARTIFACTORY_CREDS = credentials('artifactory-creds')
         RECIPIENT_EMAIL = "ronyzn3@gmail.com"
     }
 
