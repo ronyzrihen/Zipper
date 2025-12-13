@@ -13,14 +13,14 @@ def runZipJob() {
 
 def uploadToArtifactory() {
     echo 'Uploading artifacts to Artifactory...'
-    def server = Artifactory.server 'zip-artifacts'
+    server = Artifactory.server 'zip-artifacts'
     try {
         if (server == null) {
-            error "Artifactory server instance is missing! Make sure you initialized it using Artifactory.server('zip-artifacts') in the Jenkinsfile."
+            error "Artifactory server instance is missing!"
         }
-        def buildInfo = Artifactory.newBuildInfo()
+        buildInfo = Artifactory.newBuildInfo()
         buildInfo.env.capture = true
-        def uploadSpec = """{
+        uploadSpec = """{
             "files": [
                 {
                     "pattern": "zipped/*.zip",
@@ -38,9 +38,9 @@ def uploadToArtifactory() {
 }
 
 def sendEmailReport(String recipient) {
-    def buildStatus = currentBuild.currentResult
-    def subject = "Build #${env.BUILD_NUMBER} - ${buildStatus}"
-    def body = """
+    buildStatus = currentBuild.currentResult
+    subject = "Build #${env.BUILD_NUMBER} - ${buildStatus}"
+    body = """
         Build Report:\n
         Project: ${env.JOB_NAME}\n
         Status: ${buildStatus}\n

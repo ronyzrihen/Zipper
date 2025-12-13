@@ -9,8 +9,6 @@ pipeline {
 
     environment {
         RECIPIENT_EMAIL = 'ronyzn3@gmail.com'
-        ARTIFACTORY_REPO = 'binary-storage/'
-        VERSION = '1.2.0'
     }
     stages {
         stage('Load Utils') {
