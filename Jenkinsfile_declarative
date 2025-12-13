@@ -10,12 +10,18 @@ pipeline {
     environment {
         RECIPIENT_EMAIL = "ronyzn3@gmail.com"
     }
-
+    stages {
+        stage('Load Utils') {
+            steps {
+                script {
+                    utils = load 'jenkins_utils.groovy'
+                }
+            }
+        }
     stages {
         stage('Run Job') {
             steps {
                 script {
-                    utils = load 'jenkins_utils.groovy'
                     utils.runZipJob()
                 }
             }
