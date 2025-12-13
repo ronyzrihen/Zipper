@@ -8,44 +8,50 @@ pipeline {
     }
 
     environment {
-        VERSION = '1.2.0'
-        ARTIFACTORY_URL = 'https://artifactory-tlv'
-        ARTIFACTORY_USER = 'super-user'
-        ARTIFACTORY_PASS = 'Qw12856!'
-        ARTIFACTORY_REPO = "binary-storage/${VERSION}/"
         RECIPIENT_EMAIL = 'ronyzn3@gmail.com'
     }
+    stage('Check Artifactory Connectivity') {
+    steps {
+        script {
+            echo "Checking connectivity to Artifactory..."
+            def status = sh(script: '''
+                set -e
+                echo "Testing Artifactory at: http://host.docker.internal:8081/artifactory"
+                curl -I --silent --max-time 5 http://host.docker.internal:8081/artifactory/api/system/ping | head -n 1
+            ''', returnStdout: true).trim()
 
+            echo "Artifactory response: ${status}"
+
+            if (!status.contains("200")) {
+                error("❌ Cannot reach Artifactory at http://host.docker.internal:8081/artifactory")
+            } else {
+                echo "✅ Artifactory is reachable!"
+            }
+        }
+    }
+}
     stages {
-        stage('Build') {
+        stage('Load Utils') {
             steps {
-                echo 'Running zip_job.py to generate zip files...'
-                sh 'python3 ./job/zip_job.py'
+                script {
+                    utils = load 'jenkins_utils.groovy'
+                }
+            }
+        }
+
+        stage('Run Job') {
+            steps {
+                script {
+                    utils.runZipJob()
+                }
             }
         }
 
         stage('Publish to Artifactory') {
-            when {
-                expression { currentBuild.currentResult == 'SUCCESS' }
-            }
             steps {
                 script {
-                    echo 'Uploading artifacts to Artifactory...'
                     def server = Artifactory.server('zip-artifacts')
-                    def buildInfo = Artifactory.newBuildInfo()
-                    buildInfo.env.capture = true
-                    def uploadSpec = """{
-                        "files": [
-                            {
-                                "pattern": "zipped/*.zip",
-                                "target": "${ARTIFACTORY_REPO}"
-                            }
-                        ]
-                    }"""
-                    server.upload(uploadSpec, buildInfo)
-                    server.publishBuildInfo(buildInfo)
-
-                    echo "Artifacts uploaded successfully to ${ARTIFACTORY_REPO}"
+                    utils.uploadToArtifactory(server)
                 }
             }
         }
@@ -53,22 +59,7 @@ pipeline {
         stage('Report') {
             steps {
                 script {
-                    def buildStatus = currentBuild.currentResult
-                    def subject = "Build #${BUILD_NUMBER} - ${buildStatus}"
-                    def body = """
-                    <h2>📋 Build Report</h2>
-                    <p><b>Project:</b> ${JOB_NAME}</p>
-                    <p><b>Status:</b> ${buildStatus}</p>
-                    <p><b>Version:</b> ${VERSION}</p>
-                    <p><b>Timestamp:</b> ${new Date()}</p>
-                    """
-
-                    emailext(
-                        to: "${RECIPIENT_EMAIL}",
-                        subject: subject,
-                        body: body,
-                        mimeType: 'text/html'
-                    )
+                    utils.sendEmailReport(env.RECIPIENT_EMAIL)
                 }
             }
         }
@@ -76,8 +67,9 @@ pipeline {
 
     post {
         always {
-            echo '🧹 Cleaning up workspace...'
-            deleteDir()
+            script {
+                utils.cleanWorkspace()
+            }
         }
     }
 }
