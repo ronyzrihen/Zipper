@@ -38,6 +38,7 @@ def uploadToArtifactory() {
 }
 
 def sendEmailReport(String recipient = null) {
+    echo "Default recipient ${DEFAULT_RECIPIENTS}"
     buildStatus = currentBuild.currentResult
     subject = "Build #${env.BUILD_NUMBER} - ${buildStatus}"
     body = """
@@ -52,7 +53,6 @@ def sendEmailReport(String recipient = null) {
         subject: subject,
         body: body,
         mimeType: 'text/plain',
-        recipientProviders: [[$class: 'DefaultRecipientProvider']]
     )
     echo "Email report sent to ${recipient}"
 }
