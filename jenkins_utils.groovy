@@ -51,7 +51,8 @@ def sendEmailReport(String recipient = null) {
         to: recipient ?: '',
         subject: subject,
         body: body,
-        mimeType: 'text/plain'
+        mimeType: 'text/plain',
+        recipientProviders: [[$class: 'DefaultRecipientProvider']]
     )
     echo "Email report sent to ${recipient}"
 }
