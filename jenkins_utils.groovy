@@ -2,7 +2,7 @@ def runZipJob() {
     echo 'Running zip_job.py to generate zip files...'
     try {
         sh 'python3 ./job/zip_job.py'
-    }catch (Exception e) {
+    } catch (IOException e) {
         error "Error running zip_job.py: ${e.getMessage()}"
     }
     def zipFiles = sh(script: 'ls zipped/*.zip 2>/dev/null || true', returnStdout: true).trim()
@@ -14,6 +14,9 @@ def runZipJob() {
 def uploadToArtifactory(server) {
     echo 'Uploading artifacts to Artifactory...'
     try {
+        if (server == null) {
+            error "Artifactory server instance is missing! Make sure you initialized it using Artifactory.server('zip-artifacts') in the Jenkinsfile."
+        }
         def buildInfo = Artifactory.newBuildInfo()
         buildInfo.env.capture = true
         def uploadSpec = """{
@@ -27,7 +30,7 @@ def uploadToArtifactory(server) {
 
         server.upload(uploadSpec, buildInfo)
         server.publishBuildInfo(buildInfo)
-    } catch (Exception e) {
+    } catch (IOException e) {
         error "Error uploading artifacts to Artifactory: ${e.getMessage()}"
     }
     echo "Artifacts uploaded successfully to ${env.ARTIFACTORY_REPO}${env.VERSION}/"
