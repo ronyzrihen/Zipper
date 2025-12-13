@@ -53,7 +53,7 @@ def sendEmailReport() {
         body: body,
         mimeType: 'text/plain',
     )
-    echo "Email report sent to ${DEFAULT_RECIPIENTS}"
+    echo "Email report sent to '$DEFAULT_RECIPIENTS'."
 }
 
 def cleanWorkspace() {
