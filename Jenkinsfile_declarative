@@ -9,6 +9,8 @@ pipeline {
 
     environment {
         RECIPIENT_EMAIL = 'ronyzn3@gmail.com'
+        ARTIFACTORY_REPO = 'binary-storage/'
+        VERSION = '1.2.0'
     }
     stages {
         stage('Load Utils') {
@@ -31,10 +33,14 @@ pipeline {
             steps {
                 script {
                     echo 'Initializing Artifactory server...'
-                    def server = Artifactory.server 'zip-artifacts'
-                    echo 'Artifactory server initialized.'
+                    def server
+                    try {
+                        server = Artifactory.server('zip-artifacts')
+                        echo '✅ Artifactory server object created successfully.'
+                    } catch (err) {
+                        error "❌ Could not initialize Artifactory server: ${err.message}"
+                    }
                     utils.uploadToArtifactory(server)
-                    echo 'Upload to Artifactory stage completed.'
                 }
             }
         }
