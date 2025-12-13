@@ -13,7 +13,7 @@ def runZipJob() {
 
 def uploadToArtifactory() {
     echo 'Uploading artifacts to Artifactory...'
-    server = Artifactory.server 'zip-artifacts'
+    server = Artifactory.server 'zip-artifact'
     try {
         if (server == null) {
             error "Artifactory server instance is missing!"
