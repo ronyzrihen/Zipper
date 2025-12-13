@@ -37,7 +37,7 @@ def uploadToArtifactory() {
     echo "Artifacts uploaded successfully to ${env.ARTIFACTORY_REPO}${env.VERSION}/"
 }
 
-def sendEmailReport(String recipient = null) {
+def sendEmailReport() {
     def buildStatus = currentBuild.currentResult
     def subject = "Build #${env.BUILD_NUMBER} - ${buildStatus}"
     def body = """
@@ -48,12 +48,12 @@ def sendEmailReport(String recipient = null) {
     """
 
     emailext(
-        to: recipient ?: "$DEFAULT_RECIPIENTS",
+        to: "$DEFAULT_RECIPIENTS",
         subject: subject,
         body: body,
         mimeType: 'text/plain',
     )
-    echo "Email report sent to ${recipient}"
+    echo "Email report sent to ${DEFAULT_RECIPIENTS}"
 }
 
 def cleanWorkspace() {
