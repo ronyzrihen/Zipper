@@ -31,18 +31,8 @@ pipeline {
             steps {
                 script {
                     echo 'Initializing Artifactory server...'
-                    
-                    echo 'Artifactory server initialized.'
                     utils.uploadToArtifactory()
                     echo 'Upload to Artifactory stage completed.'
-                }
-            }
-        }
-
-        stage('Report') {
-            steps {
-                script {
-                    utils.sendEmailReport(env.RECIPIENT_EMAIL)
                 }
             }
         }
@@ -51,6 +41,7 @@ pipeline {
     post {
         always {
             script {
+                utils.sendEmailReport()
                 utils.cleanWorkspace()
             }
         }
