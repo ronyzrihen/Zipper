@@ -1,23 +1,22 @@
 def runZipJob() {
-    echo "Running zip_job.py to generate zip files..."
-    try{
+    echo 'Running zip_job.py to generate zip files...'
+    try {
         sh 'python3 ./job/zip_job.py'
-
-    }catch (Exception e){
+    }catch (Exception e) {
         error "Error running zip_job.py: ${e.getMessage()}"
     }
-    def zipFiles = sh(script: "ls zipped/*.zip 2>/dev/null || true", returnStdout: true).trim()
-    if (zipFiles == "") {
+    def zipFiles = sh(script: 'ls zipped/*.zip 2>/dev/null || true', returnStdout: true).trim()
+    if (zipFiles == '') {
         error "No zip files found in 'zipped/' directory to upload."
     }
 }
 
 def uploadToArtifactory(server) {
-    echo "Uploading artifacts to Artifactory..."
-    try{
+    echo 'Uploading artifacts to Artifactory...'
+    try {
         def buildInfo = Artifactory.newBuildInfo()
         buildInfo.env.capture = true
-        def uploadSpec = """{ 
+        def uploadSpec = """{
             "files": [
                 {
                     "pattern": "zipped/*.zip",
@@ -33,7 +32,6 @@ def uploadToArtifactory(server) {
     }
     echo "Artifacts uploaded successfully to ${env.ARTIFACTORY_REPO}${env.VERSION}/"
 }
-
 
 def sendEmailReport(String recipient) {
     def buildStatus = currentBuild.currentResult
@@ -55,9 +53,8 @@ def sendEmailReport(String recipient) {
 }
 
 def cleanWorkspace() {
-    echo "Cleaning up workspace..."
+    echo 'Cleaning up workspace...'
     deleteDir()
 }
-
 
 return this
