@@ -30,8 +30,11 @@ pipeline {
         stage('Publish to Artifactory') {
             steps {
                 script {
+                    echo 'Initializing Artifactory server...'
                     def server = Artifactory.server 'zip-artifacts'
+                    echo 'Artifactory server initialized.'
                     utils.uploadToArtifactory(server)
+                    echo 'Upload to Artifactory stage completed.'
                 }
             }
         }
