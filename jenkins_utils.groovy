@@ -48,12 +48,12 @@ def sendEmailReport() {
     """
 
     emailext(
-        to: "$DEFAULT_RECIPIENTS",
+        to: '$DEFAULT_RECIPIENTS',
         subject: subject,
         body: body,
         mimeType: 'text/plain',
     )
-    echo "Email report sent to ${$DEFAULT_RECIPIENTS}"
+    echo "Email report sent to ${DEFAULT_RECIPIENTS}"
 }
 
 def cleanWorkspace() {
