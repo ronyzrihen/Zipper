@@ -13,20 +13,22 @@ pipeline {
     stages {
         stage('Check Artifactory Connectivity') {
             steps {
-                script {
-                    echo 'Checking connectivity to Artifactory...'
-                    def status = sh(script: '''
-                set -e
-                echo "Testing Artifactory at: http://host.docker.internal:8081/artifactory"
-                curl -I --silent --max-time 5 http://host.docker.internal:8081/artifactory/api/system/ping | head -n 1
-            ''', returnStdout: true).trim()
+                withCredentials([usernamePassword(credentialsId: 'artifactory-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    script {
+                        echo 'Checking connectivity to Artifactory with credentials...'
+                        def status = sh(script: '''
+                    set -e
+                    echo "Testing Artifactory at: http://host.docker.internal:8081/artifactory"
+                    curl -u $USER:$PASS -I --silent --max-time 5 http://host.docker.internal:8081/artifactory/api/system/ping | head -n 1
+                ''', returnStdout: true).trim()
 
-                    echo "Artifactory response: ${status}"
+                        echo "Artifactory response: ${status}"
 
-                    if (!status.contains('200')) {
-                        error('❌ Cannot reach Artifactory at http://host.docker.internal:8081/artifactory')
-            } else {
-                        echo '✅ Artifactory is reachable!'
+                        if (!status.contains('200')) {
+                            error('❌ Authentication failed or no access to Artifactory')
+                } else {
+                            echo '✅ Artifactory is reachable and credentials are valid!'
+                        }
                     }
                 }
             }
