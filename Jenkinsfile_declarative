@@ -32,26 +32,41 @@ pipeline {
         stage('Publish to Artifactory') {
             steps {
                 script {
-                    echo 'Initializing Artifactory server...'
-                    def server
-                    try {
-                        server = Artifactory.server('zip-artifacts')
-                        echo '✅ Artifactory server object created successfully.'
-                    } catch (err) {
-                        error "❌ Could not initialize Artifactory server: ${err.message}"
-                    }
-                    utils.uploadToArtifactory(server)
+                    echo 'Creating Artifactory server dynamically...'
+                    def server = rtServer (
+                        id: 'zip-artifacts',
+                        url: env.ARTIFACTORY_URL,
+                        credentialsId: 'artifactory-creds',
+                        bypassProxy: true,
+                        timeout: 300
+                    )
+
+                    def buildInfo = server.newBuildInfo()
+
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "zipped/*.zip",
+                                "target": "${env.ARTIFACTORY_REPO}${env.VERSION}/"
+                            }
+                        ]
+                    }"""
+
+                    echo "Uploading with spec:\n${uploadSpec}"
+                    server.upload(spec: uploadSpec, buildInfo: buildInfo)
+                    server.publishBuildInfo(buildInfo)
+                    echo "✅ Upload completed successfully!"
                 }
             }
         }
 
-        stage('Report') {
-            steps {
-                script {
-                    utils.sendEmailReport(env.RECIPIENT_EMAIL)
-                }
-            }
-        }
+        // stage('Report') {
+        //     steps {
+        //         script {
+        //             utils.sendEmailReport(env.RECIPIENT_EMAIL)
+        //         }
+        //     }
+        // }
     }
 
     post {
