@@ -4,34 +4,49 @@ pipeline {
             filename 'Dockerfile'
             dir '.'
             label 'zip-job-docker'
+            additionalBuildArgs '--privileged'
         }
     }
 
     environment {
+        VERSION = '1.2.0'
+        ARTIFACTORY_URL = 'https://artifactory-tlv'
+        ARTIFACTORY_USER = 'super-user'
+        ARTIFACTORY_PASS = 'Qw12856!'
+        ARTIFACTORY_REPO = "binary-storage/${VERSION}/"
         RECIPIENT_EMAIL = 'ronyzn3@gmail.com'
     }
-    stages {
-        stage('Load Utils') {
-            steps {
-                script {
-                    utils = load 'jenkins_utils.groovy'
-                }
-            }
-        }
 
-        stage('Run Job') {
+    stages {
+        stage('Build') {
             steps {
-                script {
-                    utils.runZipJob()
-                }
+                echo 'Running zip_job.py to generate zip files...'
+                sh 'python3 ./job/zip_job.py'
             }
         }
 
         stage('Publish to Artifactory') {
+            when {
+                expression { currentBuild.currentResult == 'SUCCESS' }
+            }
             steps {
                 script {
+                    echo 'Uploading artifacts to Artifactory...'
                     def server = Artifactory.server('zip-artifacts')
-                    utils.uploadToArtifactory(server)
+                    def buildInfo = Artifactory.newBuildInfo()
+                    buildInfo.env.capture = true
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "zipped/*.zip",
+                                "target": "${ARTIFACTORY_REPO}"
+                            }
+                        ]
+                    }"""
+                    server.upload(uploadSpec, buildInfo)
+                    server.publishBuildInfo(buildInfo)
+
+                    echo "Artifacts uploaded successfully to ${ARTIFACTORY_REPO}"
                 }
             }
         }
@@ -39,7 +54,22 @@ pipeline {
         stage('Report') {
             steps {
                 script {
-                    utils.sendEmailReport(env.RECIPIENT_EMAIL)
+                    def buildStatus = currentBuild.currentResult
+                    def subject = "Build #${BUILD_NUMBER} - ${buildStatus}"
+                    def body = """
+                    <h2>📋 Build Report</h2>
+                    <p><b>Project:</b> ${JOB_NAME}</p>
+                    <p><b>Status:</b> ${buildStatus}</p>
+                    <p><b>Version:</b> ${VERSION}</p>
+                    <p><b>Timestamp:</b> ${new Date()}</p>
+                    """
+
+                    emailext(
+                        to: "${RECIPIENT_EMAIL}",
+                        subject: subject,
+                        body: body,
+                        mimeType: 'text/html'
+                    )
                 }
             }
         }
@@ -47,9 +77,8 @@ pipeline {
 
     post {
         always {
-            script {
-                utils.cleanWorkspace()
-            }
+            echo '🧹 Cleaning up workspace...'
+            deleteDir()
         }
     }
 }
