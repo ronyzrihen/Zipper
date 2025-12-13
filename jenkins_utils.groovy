@@ -48,7 +48,7 @@ def sendEmailReport(String recipient = null) {
     """
 
     emailext(
-        to: recipient ?: '',
+        to: '$DEFAULT_RECIPIENTS',
         subject: subject,
         body: body,
         mimeType: 'text/plain',
