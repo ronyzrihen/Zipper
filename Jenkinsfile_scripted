@@ -1,0 +1,31 @@
+node {
+    stage('Checkout') {
+        checkout scm
+    }
+
+    stage('Build Docker Image') {
+        echo 'Building Docker image from Dockerfile...'
+        dockerImage = docker.build('zip-job-image', '.')
+    }
+
+    dockerImage.inside {
+        stage('Run Job') {
+            echo 'Running zip job inside container...'
+            utils = load 'jenkins_utils.groovy'
+            utils.runZipJob()
+        }
+
+        stage('Publish to Artifactory') {
+            utils.uploadToArtifactory()
+        }
+
+        stage('Post Actions') {
+            try {
+                utils.sendEmailReport()
+        } catch (err) {
+                echo "Failed to send email: ${err.message}"
+            }
+            utils.cleanWorkspace()
+        }
+    }
+}
