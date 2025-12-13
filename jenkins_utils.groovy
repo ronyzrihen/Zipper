@@ -11,8 +11,9 @@ def runZipJob() {
     }
 }
 
-def uploadToArtifactory(server) {
+def uploadToArtifactory() {
     echo 'Uploading artifacts to Artifactory...'
+    def server = Artifactory.server 'zip-artifacts'
     try {
         if (server == null) {
             error "Artifactory server instance is missing! Make sure you initialized it using Artifactory.server('zip-artifacts') in the Jenkinsfile."
